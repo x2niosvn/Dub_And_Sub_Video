@@ -75,7 +75,6 @@ class NewProjectPage(BasePage):
     """Trình hướng dẫn tạo một dự án lồng tiếng."""
 
     settings_needed = Signal(str)
-    edit_requested = Signal(str)
     home_requested = Signal()
     balance_changed = Signal(int)
 
@@ -159,11 +158,9 @@ class NewProjectPage(BasePage):
         self.done_banner = Banner("success", "Đã lồng tiếng xong")
         btn_video = GhostButton("Mở video")
         btn_video.clicked.connect(self._open_result_video)
-        btn_folder = GhostButton("Mở thư mục")
+        btn_folder = PrimaryButton("Mở thư mục")
         btn_folder.clicked.connect(self._open_result_folder)
-        btn_edit = PrimaryButton("Chỉnh sửa dự án")
-        btn_edit.clicked.connect(self._open_editor)
-        for button in (btn_video, btn_folder, btn_edit):
+        for button in (btn_video, btn_folder):
             self.done_banner.add_button(button)
         card.body.addWidget(self.done_banner)
         return card
@@ -1055,9 +1052,7 @@ class NewProjectPage(BasePage):
         if not ok:
             self._open_result_folder()
 
-    def _open_editor(self) -> None:
-        if self._result is not None:
-            self.edit_requested.emit(self._result.work_dir)
+
 
     # -- Vòng đời ------------------------------------------------------
     def is_running(self) -> bool:

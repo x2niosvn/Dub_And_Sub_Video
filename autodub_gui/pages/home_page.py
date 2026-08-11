@@ -46,7 +46,6 @@ class HomePage(BasePage):
 
     create_requested = Signal(str)      # đường dẫn video đã chọn, có thể rỗng
     projects_requested = Signal()
-    edit_requested = Signal(str)
     batch_requested = Signal()
     voices_requested = Signal()         # mở Cài đặt ở tab Giọng đọc
     settings_requested = Signal()
@@ -78,8 +77,7 @@ class HomePage(BasePage):
         layout.addWidget(self._build_quick_start())
         layout.addLayout(self._build_recent_header())
         self.grid = ProjectGrid(max_items=RECENT_COUNT)
-        self.grid.card_clicked.connect(self.edit_requested.emit)
-        self.grid.edit_project.connect(self.edit_requested.emit)
+        self.grid.card_clicked.connect(self._open_folder)
         self.grid.open_video.connect(self._open_video)
         self.grid.open_folder.connect(self._open_folder)
         self.grid.delete_project.connect(self._hide_project)

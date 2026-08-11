@@ -44,7 +44,6 @@ _SORT_OPTIONS = [
 class ProjectsPage(BasePage):
     """Toàn bộ dự án đã và đang xử lý."""
 
-    edit_requested = Signal(str)
     create_requested = Signal()
     settings_requested = Signal()
 
@@ -128,8 +127,7 @@ class ProjectsPage(BasePage):
         layout.addWidget(self.count_label)
 
         self.grid = ProjectGrid()
-        self.grid.card_clicked.connect(self.edit_requested.emit)
-        self.grid.edit_project.connect(self.edit_requested.emit)
+        self.grid.card_clicked.connect(self._open_folder)
         self.grid.open_video.connect(self._open_video)
         self.grid.open_folder.connect(self._open_folder)
         self.grid.delete_project.connect(self._delete)

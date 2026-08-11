@@ -563,16 +563,16 @@ QTabBar::tab:selected {{
 QTabBar::tab:disabled {{ color: {_t.TEXT_DISABLED}; }}
 
 /* ---- Thanh cuộn ---- */
-QScrollBar:vertical {{ background: transparent; width: 8px; margin: 2px; }}
+QScrollBar:vertical {{ background: rgba(0, 0, 0, 0.2); width: 10px; margin: 0px; border-radius: 5px; }}
 QScrollBar::handle:vertical {{
-    background: {_t.BORDER_DEFAULT}; border-radius: 4px; min-height: 28px;
+    background: {_t.TEXT_DISABLED}; border-radius: 5px; min-height: 28px;
 }}
-QScrollBar::handle:vertical:hover {{ background: {_t.SCROLL_HANDLE_HOVER}; }}
-QScrollBar:horizontal {{ background: transparent; height: 8px; margin: 2px; }}
+QScrollBar::handle:vertical:hover {{ background: {_t.TEXT_SECONDARY}; }}
+QScrollBar:horizontal {{ background: rgba(0, 0, 0, 0.2); height: 10px; margin: 0px; border-radius: 5px; }}
 QScrollBar::handle:horizontal {{
-    background: {_t.BORDER_DEFAULT}; border-radius: 4px; min-width: 28px;
+    background: {_t.TEXT_DISABLED}; border-radius: 5px; min-width: 28px;
 }}
-QScrollBar::handle:horizontal:hover {{ background: {_t.SCROLL_HANDLE_HOVER}; }}
+QScrollBar::handle:horizontal:hover {{ background: {_t.TEXT_SECONDARY}; }}
 QScrollBar::add-line, QScrollBar::sub-line {{ height: 0; width: 0; }}
 QScrollBar::add-page, QScrollBar::sub-page {{ background: transparent; }}
 

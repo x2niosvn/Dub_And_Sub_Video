@@ -18,7 +18,6 @@ class ProjectGrid(QWidget):
 
     open_video = Signal(str)
     open_folder = Signal(str)
-    edit_project = Signal(str)
     delete_project = Signal(str)
     card_clicked = Signal(str)
 
@@ -50,7 +49,6 @@ class ProjectGrid(QWidget):
                              project.duration_s)
             card.open_video.connect(self.open_video.emit)
             card.open_folder.connect(self.open_folder.emit)
-            card.edit_project.connect(self.edit_project.emit)
             card.delete_project.connect(self.delete_project.emit)
             card.clicked.connect(self.card_clicked.emit)
             self._cards[project.key] = card

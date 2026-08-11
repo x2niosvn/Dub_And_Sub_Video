@@ -308,7 +308,6 @@ class ProjectCard(QFrame):
 
     open_video = Signal(str)
     open_folder = Signal(str)
-    edit_project = Signal(str)
     delete_project = Signal(str)
     clicked = Signal(str)
 
@@ -357,7 +356,6 @@ class ProjectCard(QFrame):
         specs = (
             (icons.play(tokens.SUCCESS), "Mở video kết quả", self.open_video),
             (icons.folder(tokens.TEXT_SECONDARY), "Mở thư mục dự án", self.open_folder),
-            (icons.edit(tokens.ACCENT_BLUE), "Chỉnh sửa dự án", self.edit_project),
             (icons.trash(tokens.DANGER), "Xóa dự án", self.delete_project),
         )
         for icon, tip, signal in specs:

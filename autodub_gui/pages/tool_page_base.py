@@ -78,16 +78,6 @@ class ToolPage(BasePage):
                                 _PAGE_MARGIN, tokens.SP_4)
         root.setSpacing(tokens.SP_3)
 
-        if self.TITLE:
-            title = QLabel(self.TITLE)
-            title.setObjectName("pageTitle")
-            root.addWidget(title)
-        if self.SUBTITLE:
-            hint = QLabel(self.SUBTITLE)
-            hint.setObjectName("hint")
-            hint.setWordWrap(True)
-            root.addWidget(hint)
-
         root.addWidget(self._build_body(), 1)
         root.addLayout(self._build_footer())
 

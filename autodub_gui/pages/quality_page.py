@@ -42,15 +42,7 @@ class QualityPage(BasePage):
                                 tokens.SP_6, tokens.SP_6)
         root.setSpacing(tokens.SP_4)
 
-        title = QLabel("Báo cáo chất lượng")
-        title.setObjectName("pageTitle")
-        root.addWidget(title)
 
-        hint = QLabel("Xem chi tiết chất lượng xử lý của một dự án: "
-                      "câu dịch quá dài, timeline bị nén, token đã dùng.")
-        hint.setObjectName("hint")
-        hint.setWordWrap(True)
-        root.addWidget(hint)
 
         # Dropdown chọn dự án
         picker_row = QHBoxLayout()

@@ -16,8 +16,17 @@ from PySide6.QtCore import QEvent, QObject, Qt, QThread, QTimer, Signal
 from PySide6.QtGui import QIcon, QKeyEvent
 from PySide6.QtWidgets import (
     QApplication, QHBoxLayout, QMainWindow, QMessageBox, QStackedWidget,
-    QVBoxLayout, QWidget,
+    QVBoxLayout, QWidget, QComboBox,
 )
+
+# Patch QComboBox to ignore mouse wheel events unless the dropdown popup is open
+_original_combo_wheel = QComboBox.wheelEvent
+def _safe_combo_wheel(self, event):
+    if self.view() and self.view().isVisible():
+        _original_combo_wheel(self, event)
+    else:
+        event.ignore()
+QComboBox.wheelEvent = _safe_combo_wheel
 
 from autodub.config import Settings
 from autodub_gui import icons, theme, tokens
@@ -35,16 +44,12 @@ APP_VERSION = "3.0.0"
 # -- Danh mục trang ----------------------------------------------------
 ROW_HOME, ROW_NEW, ROW_PROJECTS, ROW_BATCH, ROW_DOWNLOAD = 0, 1, 2, 3, 4
 ROW_SETTINGS, ROW_HELP = 5, 6
-ROW_EDITOR = 7          # trang ngữ cảnh (ẩn header khi mở)
 
 # Trang công cụ (mới — trang riêng, không phải shortcut vào Settings)
 ROW_VOICE    = 8    # Giọng đọc AI
 ROW_TRANSLATE = 9   # Dịch thuật
 ROW_SUBTITLE  = 10  # Phụ đề
 ROW_QUALITY   = 11  # Báo cáo chất lượng
-
-# Trang launcher editor (trung gian — không hiện trong sidebar)
-ROW_EDITOR_LAUNCHER = 12
 
 ROW_ACCOUNT = 13    # Tài khoản: ví Vox, kích hoạt mã, lịch sử
 
@@ -62,9 +67,6 @@ PAGES: list[tuple[int, str, str, str, object, str]] = [
     (ROW_PROJECTS,  "Dự án",             "Dự án của tôi",
      "Toàn bộ video đã và đang xử lý",
      icons.folder, "main"),
-    (ROW_EDITOR,    "Trình chỉnh sửa",   "Trình chỉnh sửa",
-     "Chỉnh sửa phụ đề, giọng đọc và xuất video",
-     icons.edit, "main"),
     # Nhóm "tools" — CÔNG CỤ (trang riêng)
     (ROW_VOICE,     "Giọng đọc AI",      "Giọng đọc AI",
      "Quản lý và tùy chỉnh giọng đọc",
@@ -105,9 +107,9 @@ _VIDEO_PROBE_MS = 4000     # thời gian chờ tối đa khi thử giải mã vi
 
 # Dựng sẵn các trang sau khi cửa sổ hiện lên: trang hay dùng trước, trang
 # nặng nhất (Cài đặt) dựng sớm để lần bấm đầu tiên không phải chờ.
-_PREWARM_ORDER = (ROW_SETTINGS, ROW_NEW, ROW_PROJECTS, ROW_EDITOR,
+_PREWARM_ORDER = (ROW_SETTINGS, ROW_NEW, ROW_PROJECTS,
                   ROW_VOICE, ROW_TRANSLATE, ROW_SUBTITLE, ROW_QUALITY,
-                  ROW_EDITOR_LAUNCHER, ROW_ACCOUNT)
+                  ROW_ACCOUNT)
 _PREWARM_START_MS = 700     # chờ khung hình đầu vẽ xong rồi mới dựng
 _PREWARM_GAP_MS = 250       # nghỉ giữa hai trang để giao diện luôn mượt
 _PREFLIGHT_DELAY_MS = 1200  # kiểm tra máy sau khi cửa sổ đã hiện xong
@@ -149,7 +151,6 @@ class MainWindow(QMainWindow):
         TOASTS.attach(self)
 
         self.popup = NotificationPopup(self)
-        self.popup.activity_opened.connect(self.open_editor)
 
         REGISTRY.activity_added.connect(self._on_activity)
         self.switch_page(ROW_HOME)
@@ -274,7 +275,6 @@ class MainWindow(QMainWindow):
             page = HomePage(self._fresh_settings, self.pages)
             page.create_requested.connect(self._start_new_project)
             page.projects_requested.connect(lambda: self.switch_page(ROW_PROJECTS))
-            page.edit_requested.connect(self.open_editor)
             page.batch_requested.connect(lambda: self.switch_page(ROW_BATCH))
             page.voices_requested.connect(lambda: self._open_tool("voice"))
             page.settings_requested.connect(
@@ -283,13 +283,11 @@ class MainWindow(QMainWindow):
             from autodub_gui.pages.new_project_page import NewProjectPage
             page = NewProjectPage(self._fresh_settings, self.pages)
             page.settings_needed.connect(lambda _m: self.switch_page(ROW_SETTINGS))
-            page.edit_requested.connect(self.open_editor)
             page.home_requested.connect(lambda: self.switch_page(ROW_HOME))
             page.balance_changed.connect(self.credit_badge.set_balance)
         elif row == ROW_PROJECTS:
             from autodub_gui.pages.projects_page import ProjectsPage
             page = ProjectsPage(self._fresh_settings, self.pages)
-            page.edit_requested.connect(self.open_editor)
             page.create_requested.connect(lambda: self.switch_page(ROW_NEW))
             page.settings_requested.connect(lambda: self.switch_page(ROW_SETTINGS))
         elif row == ROW_BATCH:
@@ -307,11 +305,6 @@ class MainWindow(QMainWindow):
             from autodub_gui.pages.help_page import HelpPage
             page = HelpPage(self._fresh_settings, self.pages)
             page.settings_requested.connect(lambda: self.switch_page(ROW_SETTINGS))
-        elif row == ROW_EDITOR:
-            from autodub_gui.pages.editor_page import EditorPage
-            page = EditorPage(self._fresh_settings, self.pages)
-            page.settings_needed.connect(lambda _m: self.switch_page(ROW_SETTINGS))
-            page.close_requested.connect(lambda: self.switch_page(ROW_PROJECTS))
         elif row == ROW_VOICE:
             from autodub_gui.pages.voice_tool_page import VoiceToolPage
             page = VoiceToolPage(self._fresh_settings, self.pages)
@@ -328,10 +321,6 @@ class MainWindow(QMainWindow):
             from autodub_gui.pages.account_page import AccountPage
             page = AccountPage(self._fresh_settings, self.pages)
             page.balance_changed.connect(self.credit_badge.set_balance)
-        elif row == ROW_EDITOR_LAUNCHER:
-            from autodub_gui.pages.editor_launcher_page import EditorLauncherPage
-            page = EditorLauncherPage(self._fresh_settings, self.pages)
-            page.open_requested.connect(self.open_editor)
         else:
             from autodub_gui.ui.empty import EmptyState
             page = EmptyState("Trang không xác định", f"ROW={row}")
@@ -339,12 +328,6 @@ class MainWindow(QMainWindow):
 
     def switch_page(self, row: int) -> None:
         """Chuyển sang một trang, có hỏi trước nếu trang cũ còn việc dở."""
-        # ROW_EDITOR đặc biệt: nếu chưa có project mở → vào launcher
-        if row == ROW_EDITOR:
-            editor = self._page_widgets.get(ROW_EDITOR)
-            if editor is None or not getattr(editor, "_work_dir", ""):
-                row = ROW_EDITOR_LAUNCHER
-
         current = self.pages.currentWidget()
         if current is not None and self._blocked_by_unsaved(current):
             self.sidebar.select_row(self._row_of(current))
@@ -374,10 +357,7 @@ class MainWindow(QMainWindow):
         return not confirm_discard(self, "Trang này")
 
     def _apply_header(self, row: int) -> None:
-        """Đổi tiêu đề, ẩn thanh tiêu đề khi vào Trình chỉnh sửa."""
-        if row in (ROW_EDITOR, ROW_EDITOR_LAUNCHER):
-            self.header.setVisible(False)
-            return
+        """Đổi tiêu đề."""
         self.header.setVisible(True)
         _row, _label, title, subtitle, _icon, _group = _PAGE_BY_ROW[row]
         from autodub_gui.shell import display_name
@@ -401,19 +381,7 @@ class MainWindow(QMainWindow):
         if page is not None and hasattr(page, "dropzone"):
             page.dropzone.browse()
 
-    def open_editor(self, work_dir: str) -> None:
-        """Mở một dự án trong Trình chỉnh sửa."""
-        if not work_dir:
-            return
-        self.switch_page(ROW_EDITOR)
-        editor = self._ensure_page(ROW_EDITOR)
-        editor.open_work_dir(work_dir)
-        # Cập nhật launcher banner để hiện project đang mở
-        launcher = self._page_widgets.get(ROW_EDITOR_LAUNCHER)
-        if launcher and hasattr(launcher, "set_current_project"):
-            from pathlib import Path
-            title = Path(work_dir).stem
-            launcher.set_current_project(work_dir, title)
+
 
     def _start_new_project(self, file_path: str = "") -> None:
         """Sang trang Tạo dự án, điền sẵn tệp nếu người dùng vừa kéo thả."""
@@ -618,7 +586,7 @@ def _smoke_report(window: MainWindow) -> int:
 
     from autodub.utils import app_root
 
-    for row in (*(p[0] for p in PAGES), ROW_EDITOR, ROW_EDITOR_LAUNCHER):
+    for row in (*(p[0] for p in PAGES),):
         window._ensure_page(row)
 
     settings = Settings.load(override=True)
