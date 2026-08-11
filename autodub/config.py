@@ -219,9 +219,9 @@ class Settings:
 
     # --- Cập nhật và hỗ trợ -----------------------------------------------
     # Kho GitHub chứa bản phát hành (dạng "chủ/kho") — dùng để báo bản mới.
-    update_repo: str = "ttthanh2044/x2nsoft_vdub"
+    update_repo: str = "x2niosvn/x2nsoft_vdub"
     # Đường dẫn biểu mẫu nhận báo lỗi và góp ý từ người dùng.
-    support_url: str = "https://github.com/ttthanh2044/x2nsoft_vdub/issues"
+    support_url: str = "https://github.com/x2niosvn/x2nsoft_vdub/issues"
 
     # Liên kết video mặc định (dùng khi giao diện/chạy hàng loạt không đưa nguồn)
     video_url: str = ""
@@ -384,9 +384,9 @@ class Settings:
             auto_clean_intermediates=env_bool("AUTO_CLEAN_INTERMEDIATES",
                                               "false"),
             update_repo=env("UPDATE_REPO",
-                            "ttthanh2044/x2nsoft_vdub").strip(),
+                            "x2niosvn/x2nsoft_vdub").strip(),
             support_url=env("SUPPORT_URL",
-                            "https://github.com/ttthanh2044/x2nsoft_vdub/issues").strip(),
+                            "https://github.com/x2niosvn/x2nsoft_vdub/issues").strip(),
             video_url=env("VIDEO_URL"),
             generate_metadata=env("GENERATE_METADATA", "true").strip().lower()
                               not in ("0", "false", "no"),

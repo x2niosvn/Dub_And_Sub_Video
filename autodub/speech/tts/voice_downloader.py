@@ -23,7 +23,7 @@ logger = setup_logging("autodub.voice_downloader")
 
 # URL voices.zip trên GitHub release — chỉ dùng khi thư mục voices/ trống
 # (bản đóng gói exe, hoặc người dùng tải mã nguồn dạng zip thiếu thư mục).
-VOICES_RELEASE_URL = "https://github.com/ttthanh2044/x2nsoft_vdub/releases/download/voices-v1.0.0/preset_voices_vn.zip"
+VOICES_RELEASE_URL = "https://github.com/x2niosvn/x2nsoft_vdub/releases/download/voices-v1.0.0/preset_voices_vn.zip"
 VOICES_TARGET_DIR = "voices/preset_voices_vn"
 MANIFEST_NAME = "voices_manifest.json"
 
